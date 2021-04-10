@@ -111,7 +111,7 @@ float getExtensiveness()
 
 void setInputPos(int nInput, float dist, float x, float y, float z)
 {
- inputPos[nInput][0] = x * dist;
- inputPos[nInput][1] = y * dist;
- inputPos[nInput][2] = z * dist;
+ relPos[nInput].x = x * dist;
+ relPos[nInput].y = y * dist;
+ relPos[nInput].z = z * dist;
 }

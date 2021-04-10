@@ -50,6 +50,7 @@ int nInput = 10;                             // Number of input masses
 int[] smoothing = new int[10];               // Input smoothing (sensitivity)
 float inRadius = 1*scaling;                  // Radius of input masses
 float[][] inputPos = new float[10][3];       // relative positioning of input masses
+PVector[] relPos = new PVector[10];
 
 // Strings
 float m = 1.f;                               // Mass
@@ -139,7 +140,7 @@ void setup()
   for(int i = 0; i < nInput; i++)
   {
     smoothing[i] = 1000 + (int) random(10,10000); // Each input has a slightly different response 
-    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius, new Vect3D(centerOfMass.x + inputPos[i][0], centerOfMass.y + inputPos[i][1], centerOfMass.z + inputPos[i][2]), smoothing[i]));
+    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius, new Vect3D(centerOfMass.x + relPos[i].x, centerOfMass.y + relPos[i].y, centerOfMass.z + relPos[i].z), smoothing[i]));
   }
   smoothing[0] = 100; // Middle input mass more responsive than others
   input[0].setParam(param.RADIUS, 2./100); // Make center input slightly larger
@@ -185,10 +186,10 @@ void draw()
   currentFrame = mocapInstance.currentFrame;
   centerOfMass = getCenterOfMass();
   extensiveness = getExtensiveness(); 
-   println(extensiveness);
+  
   for(int i = 0; i < nInput; i++)
   {
-    input[i].drivePosition(new Vect3D((centerOfMass.x + inputPos[i][0]*extensiveness)*scaling, (centerOfMass.y + inputPos[i][2]*extensiveness)*scaling, (centerOfMass.z + inputPos[i][2]*extensiveness)*scaling));
+    input[i].drivePosition(new Vect3D((centerOfMass.x + relPos[i].x*extensiveness)*scaling, (centerOfMass.y + relPos[i].y*extensiveness)*scaling, (centerOfMass.z + relPos[i].z*extensiveness)*scaling));
   }
   renderer.renderScene(phys);
   
