@@ -94,13 +94,24 @@ float getExtensiveness()
 {
   float extension = 0;
   PVector ctrOfMass = getCenterOfMass();
-  // Summation of distance joints and center of mass
+  // Summation of distance between joints and center of mass
   for(int j = 0; j < mocap.joints.size(); j++) { 
     extension += sqrt(pow(ctrOfMass.x - getPosVec(j,0).x,2) +  pow(ctrOfMass.y - getPosVec(j,0).y,2) + pow(ctrOfMass.z - getPosVec(j,0).z,2));
   }
-  return extension;
+  return extension/200;
 }
 
 //-------------------------------------
 // High level motion descriptors ------
 //-------------------------------------
+
+//-------------------------------------
+// Visualization motion          ------
+//-------------------------------------
+
+void setInputPos(int nInput, float dist, float x, float y, float z)
+{
+ inputPos[nInput][0] = x * dist;
+ inputPos[nInput][1] = y * dist;
+ inputPos[nInput][2] = z * dist;
+}
