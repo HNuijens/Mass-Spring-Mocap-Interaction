@@ -3,12 +3,20 @@
 Movement Analysis functions
 Written by Helmer Nuijens 
 
+first part describes low level descriptors
+second part describes high level motion descriptors
+
 -In each function 'j' stands for joint number
--In the GetPosVec function relFrame is the frame relative to the current frame number
+
 */
 
-// Get Position
-PVector getPosVec(int j, int relFrame)   
+
+//-------------------------------------
+// Low level motion descriptors -------
+//-------------------------------------
+
+//--- Get Position  ---//
+PVector getPosVec(int j, int relFrame)   //relFrame is the frame relative to the current frame number
 {
   PVector vector = new PVector();
   vector.x = mocap.joints.get(j).position.get((currentFrame + relFrame + mocap.frameNumber) % mocap.frameNumber).x;
@@ -17,7 +25,7 @@ PVector getPosVec(int j, int relFrame)
   return vector;
 }
 
-// Calculate Velocity
+//---Calculate Velocity---//
 PVector getVelVec(int j)
 {
   PVector vector = new PVector();
@@ -30,11 +38,11 @@ PVector getVelVec(int j)
 float getVelScalar(int j)
 {
   PVector velVec = getVelVec(j);
-  float velScalar = sqrt(pow(velVec.x,2)+ pow(velVec.y,2) + pow(velVec.z,2));
+  float velScalar = sqrt(pow(velVec.x,2) + pow(velVec.y,2) + pow(velVec.z,2));
   return velScalar;
 }
 
-// Calculate Acceleration
+//---Calculate Acceleration---//
 PVector getAccVec(int j)
 {
   PVector vector = new PVector();
@@ -51,7 +59,7 @@ float getAccScalar(int j)
   return accScalar;
 }
 
-// Calculate Jerk
+//---Calculate Jerk---//
 PVector getJerkVec(int j)
 {
   PVector vector = new PVector();
@@ -64,6 +72,35 @@ PVector getJerkVec(int j)
 float getJerkScalar(int j)
 {
   PVector jerkVec = getJerkVec(j);
-  float jerkScalar = sqrt(pow(jerkVec.x,2)+ pow(jerkVec.y,2) + pow(jerkVec.z,2));
+  float jerkScalar = sqrt(pow(jerkVec.x,2) + pow(jerkVec.y,2) + pow(jerkVec.z,2));
   return jerkScalar;
 }
+
+//---Calculate Center of Mass---//
+PVector getCenterOfMass()
+{
+  PVector ctrOfMass = new PVector();
+  // weighted average of joints:
+   for(int j = 0; j < mocap.joints.size(); j++) { 
+      ctrOfMass.x += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).x;
+      ctrOfMass.y += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).y;
+      ctrOfMass.z += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).z;
+    }
+  return ctrOfMass;
+}
+
+//---Calculate Extensiveness---//
+float getExtensiveness()
+{
+  float extension = 0;
+  PVector ctrOfMass = getCenterOfMass();
+  // Summation of distance joints and center of mass
+  for(int j = 0; j < mocap.joints.size(); j++) { 
+    extension += sqrt(pow(ctrOfMass.x - getPosVec(j,0).x,2) +  pow(ctrOfMass.y - getPosVec(j,0).y,2) + pow(ctrOfMass.z - getPosVec(j,0).z,2));
+  }
+  return extension;
+}
+
+//-------------------------------------
+// High level motion descriptors ------
+//-------------------------------------

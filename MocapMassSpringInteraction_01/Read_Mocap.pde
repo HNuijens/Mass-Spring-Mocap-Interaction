@@ -66,11 +66,11 @@ class Mocap {
 
   float frmRate;
   int frameNumber;
+  float frameTime;
   ArrayList<Joint> joints = new ArrayList<Joint>();
 
   Mocap (String fileName) {
        String[] lines = loadStrings(fileName);
-    float frameTime;
     int readMotion = 0;
     int lineMotion = 0;
     Joint currentParent = new Joint();
@@ -192,8 +192,6 @@ class Joint {
 
   //list of PVector, xyz position at each frame:
   ArrayList<PVector> position = new ArrayList<PVector>();
-  
-  
 }
 
 
@@ -289,4 +287,8 @@ float findFrameRate(MocapInstance mocapInstance) {
       }
     
     return mocap.frmRate;
+}
+
+float findFrameTime(MocapInstance mocapInstance) { 
+    return mocap.frameTime;
 }
