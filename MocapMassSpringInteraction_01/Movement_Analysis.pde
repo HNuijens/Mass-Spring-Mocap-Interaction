@@ -76,6 +76,31 @@ float getJerkScalar(int j)
   return jerkScalar;
 }
 
+//---Initialize joint weights---//
+void setJointWeights()
+{
+  for(int j = 0; j < jointWeight.length; j++)
+  {
+    jointWeight[j] = 0.; // initializs first with zeros
+    
+  }
+  
+  jointWeight[2] = 0.1000;  // right hip 
+  jointWeight[3] = 0.0465;  // right knee
+  jointWeight[6] = 0.0145;  // right toe joint
+  jointWeight[8] = 0.1000;  // left hip
+  jointWeight[9] = 0.0465;  // left knee
+  jointWeight[11] = 0.0145; // left toe joint
+  jointWeight[14] = 0.4970; // mid back
+  jointWeight[18] = 0.0810; // head
+  jointWeight[21] = 0.0280; // right shoulder
+  jointWeight[22] = 0.0160; // right elbow
+  jointWeight[25] = 0.0060; // right hand index
+  jointWeight[30] = 0.0280; // left shoulder
+  jointWeight[31] = 0.0160; // left elbow
+  jointWeight[34] = 0.0060; // left hand index
+}
+
 //---Calculate Center of Mass---//
 PVector getCenterOfMass()
 {
@@ -98,7 +123,7 @@ float getExtensiveness()
   for(int j = 0; j < mocap.joints.size(); j++) { 
     extension += sqrt(pow(ctrOfMass.x - getPosVec(j,0).x,2) +  pow(ctrOfMass.y - getPosVec(j,0).y,2) + pow(ctrOfMass.z - getPosVec(j,0).z,2));
   }
-  return extension/200;
+  return extension/25;
 }
 
 //-------------------------------------
@@ -109,9 +134,9 @@ float getExtensiveness()
 // Visualization motion          ------
 //-------------------------------------
 
-void setInputPos(int nInput, float dist, float x, float y, float z)
+void setInputPos(int input,float spread)
 {
- relPos[nInput].x = x * dist;
- relPos[nInput].y = y * dist;
- relPos[nInput].z = z * dist;
+ relPos.get(input).x = (randomGaussian()-0.5)*spread;
+ relPos.get(input).y = (randomGaussian()-0.5)*spread;
+ relPos.get(input).z = (randomGaussian()-0.5)*spread;
 }

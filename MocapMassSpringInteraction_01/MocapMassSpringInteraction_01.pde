@@ -12,8 +12,8 @@ To do:
 - X Import camera lib (delete current camera)
 - X Calculate box size/ extensiveness
 - Calculate Laban descriptors
-- Import miPhysics
-- Create + interact with
+- X Import miPhysics
+- X Create + interact with
 - Control the physical parameters
 - experiment for right mapping
 - create more interactions
@@ -31,7 +31,7 @@ PeasyCam cam;                                // Camera
 MocapInstance mocapInstance;                 // Mocap, see Read_Mocap
 PhysicsContext phys;                         // Physics
 Observer3D listener;                         // Audio out
-PosInput3D[] input = new PosInput3D[10];     // Excitation inputs
+PosInput3D[] input = new PosInput3D[25];     // Excitation inputs
 ModelRenderer renderer;                      // Rendering
 miString string;                             // String
 miPhyAudioClient audioStreamHandler;         // Audio
@@ -43,22 +43,22 @@ float deltaT;                                // Frame time
 PVector centerOfMass;                        // body center of mass
 float extensiveness;                         // Body extensiveness
 float[] jointWeight = new float[38];         // 38 joints in total
-float scaling = 1./100;                       // object scaling mocap and model
+float scaling = 1./100;                      // object scaling mocap and model
 
 // Input
-int nInput = 10;                             // Number of input masses
-int[] smoothing = new int[10];               // Input smoothing (sensitivity)
-float inRadius = 1*scaling;                  // Radius of input masses
-float[][] inputPos = new float[10][3];       // relative positioning of input masses
-PVector[] relPos = new PVector[10];
+int nInput = 25;                                      // Number of input masses
+int smoothing;                                        // Input smoothing (sensitivity)
+float inRadius = 1*scaling;                           // Radius of input masses
+ArrayList<PVector> relPos = new ArrayList<PVector>(); // relative positioning of input masses
+float spread = 0.5;                                       // Initial distance from ceter of mass and input
 
 // Strings
-float m = 1.f;                               // Mass
+float m = 0.8;                               // Mass
 float k = 0.6f;                              // Stiffess
-float z = 0.05f;                             // Damping
-float dist = 0.1f;                           // Distance between individual masses
-int nMass = 100;                             // Number of masses in string
-float radius = 0.1;                          // Radius of masses
+float z = 0.005f;                             // Damping
+float dist = 0.005;                          // Distance between individual masses
+int nMass = 150;                             // Number of masses in string
+float radius = 0.01;                         // Radius of masses
 
 // Audio
 float currAudio = 0;
@@ -67,8 +67,8 @@ float audioOut = 0;
 void setup()
 {
   //---Display---//
-  //fullScreen(P3D,1);
-  size(800, 600, P3D);                       // 3D environment
+  fullScreen(P3D,1);
+  //size(800, 600, P3D);                       // 3D environment
   cam = new PeasyCam(this,150);              // Starting point camera
   cam.setMinimumDistance(50);                // Min camera distance 
   cam.setMaximumDistance(5500);              // Max camera distance 
@@ -88,35 +88,16 @@ void setup()
   deltaT = 1/frmRate;
   
   //---Initialize joint weights---//
-  for(int j = 0; j < jointWeight.length; j++)
-  {
-    jointWeight[j] = 0.; // initializs first with zeros
-    
-  }
-  
-  jointWeight[2] = 0.1000;  // right hip 
-  jointWeight[3] = 0.0465;  // right knee
-  jointWeight[6] = 0.0145;  // right toe joint
-  jointWeight[8] = 0.1000;  // left hip
-  jointWeight[9] = 0.0465;  // left knee
-  jointWeight[11] = 0.0145; // left toe joint
-  jointWeight[14] = 0.4970; // mid back
-  jointWeight[18] = 0.0810; // head
-  jointWeight[21] = 0.0280; // right shoulder
-  jointWeight[22] = 0.0160; // right elbow
-  jointWeight[25] = 0.0060; // right hand index
-  jointWeight[30] = 0.0280; // left shoulder
-  jointWeight[31] = 0.0160; // left elbow
-  jointWeight[34] = 0.0060; // left hand index
+  setJointWeights();
 
   //---Physical model setup---//
-  Medium med = new Medium(0.00001, new Vect3D(0, -0.00, 0.0));  // Create new medium with friction and gravity
+  Medium med = new Medium(0.0000005, new Vect3D(0, -0.00, 0.0));  // Create new medium with friction and gravity
   phys = new PhysicsContext(44100, int(frmRate));               // Create context with right sample and frame rates
   
   // Create and tranform string
-  string = new miString("string", med, nMass, radius, m, k, z, dist, 0.02, "2D");
+  string = new miString("string", med, nMass, radius, m, k, z, dist, 0.003, "2D");
   string.rotate(0, PI/2, 0);
-  string.translate(-8,0,0);
+  string.translate(-2./10,1.5/10,0);
   string.changeToFixedPoint("m_0");                            // Ground 1
   string.changeToFixedPoint(string.getLastMass());             // Ground 2
   
@@ -125,25 +106,22 @@ void setup()
   //---Input setup---//
   centerOfMass = getCenterOfMass();
   extensiveness = getExtensiveness();
+  
   // set relative positions
-  setInputPos(0, extensiveness, 0,0,0);   // Middle input (center of mass)
-  setInputPos(1, extensiveness, -2,0,0);  // 2nd input
-  setInputPos(2, extensiveness, 2,0,0);   // 3rd input
-  setInputPos(3, extensiveness, 0,-2,0);  // 4th input
-  setInputPos(4, extensiveness, 0,2,0);   // 5th input
-  setInputPos(5, extensiveness, 0,0,-2);  // 6th input
-  setInputPos(6, extensiveness, 0,0,2);   // 7th input
-  setInputPos(7, extensiveness, 2,2,0);   // 8th input
-  setInputPos(8, extensiveness, -2,-2,0); // 9th input
-  setInputPos(9, extensiveness, 2,2,2);   // 10th input
-
-  for(int i = 0; i < nInput; i++)
+for(int n =0; n <nInput ; n++)
   {
-    smoothing[i] = 1000 + (int) random(10,10000); // Each input has a slightly different response 
-    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius, new Vect3D(centerOfMass.x + relPos[i].x, centerOfMass.y + relPos[i].y, centerOfMass.z + relPos[i].z), smoothing[i]));
+    relPos.add(new PVector());
+    if(n!=0)setInputPos(n, spread);
   }
-  smoothing[0] = 100; // Middle input mass more responsive than others
-  input[0].setParam(param.RADIUS, 2./100); // Make center input slightly larger
+  smoothing = 100; // Middle input mass more responsive and larger 
+  input[0] = perc.addMass("input"+0, new PosInput3D(2./100, new Vect3D(centerOfMass.x*scaling, centerOfMass.y*scaling, centerOfMass.z*scaling), smoothing));
+  
+  for(int i = 1; i < nInput; i++)
+  {
+    inRadius = random(0.2,1)/100;                 // Each input has a slightly different radius 
+    smoothing = 1000 + (int) random(10,10000); // Each input has a slightly different response 
+    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius, new Vect3D((centerOfMass.x + relPos.get(i).x)*scaling, (centerOfMass.y + relPos.get(i).y)*scaling, (centerOfMass.z + relPos.get(i).z)*scaling), smoothing));
+}
   
   phys.mdl().addPhyModel(string);
   phys.mdl().addPhyModel(perc);
@@ -168,7 +146,7 @@ void setup()
   // Audio 
   audioStreamHandler = miPhyAudioClient.miPhyClassic(44100, 512, 0, 2, phys);
   audioStreamHandler.setListenerAxis(listenerAxis.Y);
-  audioStreamHandler.setGain(0.3);
+  audioStreamHandler.setGain(10);
   audioStreamHandler.start();
 
 }
@@ -179,7 +157,7 @@ void draw()
   background(0, 0, 0); 
   directionalLight(126, 126, 126, 100, 0, -1);
   ambientLight(182, 182, 182);
-  drawGroundPlane(50);
+  //drawGroundPlane(50);
   //println(getPosVec(0,0));
   mocapInstance.drawMocap();
   
@@ -189,7 +167,7 @@ void draw()
   
   for(int i = 0; i < nInput; i++)
   {
-    input[i].drivePosition(new Vect3D((centerOfMass.x + relPos[i].x*extensiveness)*scaling, (centerOfMass.y + relPos[i].y*extensiveness)*scaling, (centerOfMass.z + relPos[i].z*extensiveness)*scaling));
+    input[i].drivePosition(new Vect3D((centerOfMass.x + relPos.get(i).x*extensiveness)*scaling, (centerOfMass.y + relPos.get(i).y*extensiveness)*scaling, (centerOfMass.z + relPos.get(i).z*extensiveness)*scaling));
   }
   renderer.renderScene(phys);
   

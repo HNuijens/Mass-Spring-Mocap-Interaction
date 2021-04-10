@@ -190,7 +190,7 @@ class Joint {
   //current transformation matrix applied to this joint's children:
   float[][] transMat = {{1., 0., 0.},{0., 1., 0.},{0., 0., 1.}};
 
-  //list of PVector, xyz position at each frame:
+  //list of  , xyz position at each frame:
   ArrayList<PVector> position = new ArrayList<PVector>();
 }
 
