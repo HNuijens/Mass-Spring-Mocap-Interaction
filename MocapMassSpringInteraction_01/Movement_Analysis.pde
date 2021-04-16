@@ -123,7 +123,7 @@ float getExtensiveness()
   for(int j = 0; j < mocap.joints.size(); j++) { 
     extension += sqrt(pow(ctrOfMass.x - getPosVec(j,0).x,2) +  pow(ctrOfMass.y - getPosVec(j,0).y,2) + pow(ctrOfMass.z - getPosVec(j,0).z,2));
   }
-  return extension/25;
+  return extension;
 }
 
 //-------------------------------------
@@ -135,7 +135,10 @@ void setPeriod(int period)
 {
   for(int t =0; t <period ; t++)
   {
-    weightEffortList.append(0.);
+    weightEffortList.append(0.); // Fill weight array
+    timeEffortList.append(0.);   // Fill time array
+    spaceEffortList.append(0.);  // Fill space array
+    flowEffortList.append(0.);   // Fill flow array
   }
 }
 
@@ -144,10 +147,11 @@ float getWeightEffort()
 {
   float energy = 0.;
   float weight = 0.;
-  for(int j = 0; j < mocap.joints.size(); j++) { 
+  for(int j = 0; j < mocap.joints.size(); j++)
+  { 
     energy = energy + (1./mocap.joints.size()) * pow(getVelScalar(j),2);
   }
-  weightEffortList.set(idx, energy);
+  weightEffortList.set(idx, energy); // store energy
   
   // Return largest in time period
   for( int i = 0; i < weightEffortList.size(); i ++)
@@ -157,17 +161,54 @@ float getWeightEffort()
      weight = weightEffortList.get(i);
    }
   }
-  idx = (idx + 1) % period;  
   return weight; 
 }
 
-
-
-//-------------------------------------
-// Visualization motion          ------
-//-------------------------------------
-
-void setInputPos(int input,float spread)
+//---Calculate Time Effort---//
+float getTimeEffort()
 {
- 
+  float time =0.;
+  float totalTime =0.;
+  
+  // calculate flow of each marker
+  for(int j = 0; j < mocap.joints.size(); j++) 
+  {
+    time = time + (1./mocap.joints.size()) * getAccScalar(j);
+  }
+  timeEffortList.set(idx, time); // store time effort
+
+  // Return average flow over period
+  for( int i = 0; i < timeEffortList.size(); i ++)
+  {
+     totalTime = totalTime + (1./period) * timeEffortList.get(i);
+  }
+  return totalTime; 
+}
+
+//---Calculate Space Effort---//
+float getSpaceEffort()
+{
+  float time =0;
+  return time;
+}
+//---Calculate Flow Effort---//
+
+float getFlowEffort()
+{
+  float flow =0.;
+  float totalFlow =0.;
+  
+  // calculate flow of each marker
+  for(int j = 0; j < mocap.joints.size(); j++) 
+  {
+    flow = flow + (1./mocap.joints.size()) * getJerkScalar(j);
+  }
+  flowEffortList.set(idx, flow); // store flow effort
+
+  // Return average flow over period
+  for( int i = 0; i < flowEffortList.size(); i ++)
+  {
+     totalFlow = totalFlow + (1./period) * flowEffortList.get(i);
+  }
+  return totalFlow; 
 }

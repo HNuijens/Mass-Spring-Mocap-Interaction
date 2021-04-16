@@ -45,9 +45,18 @@ float extensiveness;                         // Body extensiveness
 float[] jointWeight = new float[38];         // 38 joints in total
 float scaling = 1./100;                      // object scaling mocap and model
 
+// high level descriptors
 int period = 20;                             // High level motion descriptor time interval
 int idx = 0;                                 // current index
-FloatList weightEffortList = new FloatList();
+float weightEffort;                          
+float timeEffort;
+float spaceEffort;
+float flowEffort;
+FloatList weightEffortList = new FloatList();// Array containing all weight effort over period
+FloatList timeEffortList = new FloatList();  // Array containing all time effort over period
+FloatList spaceEffortList = new FloatList();  // Array containing all space effort over period
+FloatList flowEffortList = new FloatList();  // Array containing all flow effort over period
+
 //ArrayList<Float> timeEffortList = new ArrayList<Float>();
 
 // Input
@@ -58,7 +67,7 @@ ArrayList<PVector> relPos = new ArrayList<PVector>(); // relative positioning of
 float spread = 0.5;                                       // Initial distance from ceter of mass and input
 
 // Strings
-float m = 0.8;                               // Mass
+float m = 1.;                               // Mass
 float k = 0.6f;                              // Stiffess
 float z = 0.005f;                             // Damping
 float dist = 0.005;                          // Distance between individual masses
@@ -182,7 +191,7 @@ void draw()
   
   currentFrame = mocapInstance.currentFrame;
   centerOfMass = getCenterOfMass();
-  extensiveness = getExtensiveness(); 
+  extensiveness = map(getExtensiveness(),200,400,3,40); 
   
   for(int i = 0; i < nInput; i++)
   {
@@ -190,18 +199,22 @@ void draw()
   }
   renderer.renderScene(phys);
   
-     // print("Vel ");
-     // print(getVelScalar(0));
-     // print(" - Acc: ");
-     // print(getAccScalar(0));
-     // print(" - Jerk:  ");
-     // println(getJerkScalar(0));
-     //println(getExtensiveness());
-     //println(getWeightEffort());
-     
+    
+    k = map(getWeightEffort(), 0, 10000, 0.6, 0.9);
+    //k = float(nf(k,0,4));
+    //println(round);
+    //string.setParam(param.STIFFNESS,k);
+    //if(k>0.6&& k<0.9)string.setParam(param.STIFFNESS,k);
+    
+    weightEffort = getWeightEffort();
+    timeEffort = getTimeEffort();
+    spaceEffort = getSpaceEffort();
+    flowEffort = getFlowEffort();
+    
+    idx = (idx + 1) % period;  // indexing for high level descriptor arrays
     
     
-    //---Text---//
+     //---Text---//
     if(showText == true)
     {
       cam.beginHUD();
@@ -211,17 +224,19 @@ void draw()
       rect(0,0, 250, 120);
       textSize(16);
       fill(255, 255, 255);
-      text(" - Weight: " + getWeightEffort(), 10, 30);
-      text(" - Time: ", 10, 50);
-      text(" - Space: ", 10, 70);
-      text(" - Flow: ", 10, 90);
+      text(" - Weight: " + weightEffort, 10, 30);
+      text(" - Time: " + timeEffort, 10, 50);
+      text(" - Space: " + spaceEffort, 10, 70);
+      text(" - Flow: " + flowEffort, 10, 90);
       text(" press h to hide ", 10, 110);
+      text("stifness k = " + extensiveness, 10, 130);
       cam.endHUD();
     }
 }
 
 void keyPressed()
-{
+{  
+
   if(key == 'h' && showText == true) 
   {
     showText = false;
