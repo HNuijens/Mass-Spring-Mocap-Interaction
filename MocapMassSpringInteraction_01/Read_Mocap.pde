@@ -8,6 +8,7 @@ This code makes is possible to import and analyse .bvh motion capture files
 
 Modifications by Helmer Nuijens:
   - Removed unused functions
+  - Added condition to hide marker connections
 */
 
 //-------------------------------------
@@ -46,15 +47,18 @@ class MocapInstance {
     rotateY(radians(rotation[1]));
     rotateZ(radians(rotation[2]));
     scale(scl);
-
-    for(Joint itJ : mocap.joints) {
-      line(itJ.position.get(currentFrame).x, 
-           itJ.position.get(currentFrame).y, 
-           itJ.position.get(currentFrame).z, 
-           itJ.parent.position.get(currentFrame).x, 
-           itJ.parent.position.get(currentFrame).y, 
-           itJ.parent.position.get(currentFrame).z);
-    } 
+    
+    if(showMarkers == true)
+    {
+      for(Joint itJ : mocap.joints) {
+        line(itJ.position.get(currentFrame).x, 
+             itJ.position.get(currentFrame).y, 
+             itJ.position.get(currentFrame).z, 
+             itJ.parent.position.get(currentFrame).x, 
+             itJ.parent.position.get(currentFrame).y, 
+             itJ.parent.position.get(currentFrame).z);
+      }
+    }
     popMatrix();
     currentFrame = (currentFrame+1) % (mocap.frameNumber);
     if (currentFrame==lastFrame+1) currentFrame = firstFrame;

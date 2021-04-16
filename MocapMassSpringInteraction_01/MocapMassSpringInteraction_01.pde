@@ -45,7 +45,7 @@ float extensiveness;                         // Body extensiveness
 float[] jointWeight = new float[38];         // 38 joints in total
 float scaling = 1./100;                      // object scaling mocap and model
 
-int period = 20;                             // 20 frames
+int period = 20;                             // High level motion descriptor time interval
 int idx = 0;                                 // current index
 FloatList weightEffortList = new FloatList();
 //ArrayList<Float> timeEffortList = new ArrayList<Float>();
@@ -65,16 +65,19 @@ float dist = 0.005;                          // Distance between individual mass
 int nMass = 150;                             // Number of masses in string
 float radius = 0.01;                         // Radius of masses
 
-
 // Audio
 float currAudio = 0;
 float audioOut = 0;
 
+// Text
+boolean showText = true; 
+boolean showMarkers = true;
+
 void setup()
 {
   //---Display---//
-  //fullScreen(P3D,1);
-  size(800, 600, P3D);                      // 3D environment
+  fullScreen(P3D,1);
+  //size(800, 600, P3D);                      // 3D environment
   cam = new PeasyCam(this,150);              // Starting point camera
   cam.setMinimumDistance(50);                // Min camera distance 
   cam.setMaximumDistance(5500);              // Max camera distance 
@@ -162,6 +165,9 @@ for(int n =0; n <nInput ; n++)
 
   // Set time interval arrays
   setPeriod(period);
+  
+ /// textSize(4);
+ 
 }
 
 void draw()
@@ -192,5 +198,38 @@ void draw()
      // println(getJerkScalar(0));
      //println(getExtensiveness());
      //println(getWeightEffort());
-     text("Weight: " + getWeightEffort(), 10, 30);
+     
+    
+    
+    //---Text---//
+    if(showText == true)
+    {
+      cam.beginHUD();
+      stroke(125,125,255);
+      strokeWeight(2);
+      fill(0,0,60, 220);
+      rect(0,0, 250, 120);
+      textSize(16);
+      fill(255, 255, 255);
+      text(" - Weight: " + getWeightEffort(), 10, 30);
+      text(" - Time: ", 10, 50);
+      text(" - Space: ", 10, 70);
+      text(" - Flow: ", 10, 90);
+      text(" press h to hide ", 10, 110);
+      cam.endHUD();
+    }
+}
+
+void keyPressed()
+{
+  if(key == 'h' && showText == true) 
+  {
+    showText = false;
+    showMarkers = false;
+  }
+  else if(key == 'h' && showText == false)
+  {
+    showText = true;
+    showMarkers = true; 
+  }
 }
