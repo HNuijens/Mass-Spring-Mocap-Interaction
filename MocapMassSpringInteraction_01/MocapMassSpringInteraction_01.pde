@@ -45,6 +45,11 @@ float extensiveness;                         // Body extensiveness
 float[] jointWeight = new float[38];         // 38 joints in total
 float scaling = 1./100;                      // object scaling mocap and model
 
+int period = 20;                             // 20 frames
+int idx = 0;                                 // current index
+FloatList weightEffortList = new FloatList();
+//ArrayList<Float> timeEffortList = new ArrayList<Float>();
+
 // Input
 int nInput = 25;                                      // Number of input masses
 int smoothing;                                        // Input smoothing (sensitivity)
@@ -60,6 +65,7 @@ float dist = 0.005;                          // Distance between individual mass
 int nMass = 150;                             // Number of masses in string
 float radius = 0.01;                         // Radius of masses
 
+
 // Audio
 float currAudio = 0;
 float audioOut = 0;
@@ -67,8 +73,8 @@ float audioOut = 0;
 void setup()
 {
   //---Display---//
-  fullScreen(P3D,1);
-  //size(800, 600, P3D);                       // 3D environment
+  //fullScreen(P3D,1);
+  size(800, 600, P3D);                      // 3D environment
   cam = new PeasyCam(this,150);              // Starting point camera
   cam.setMinimumDistance(50);                // Min camera distance 
   cam.setMaximumDistance(5500);              // Max camera distance 
@@ -111,7 +117,12 @@ void setup()
 for(int n =0; n <nInput ; n++)
   {
     relPos.add(new PVector());
-    if(n!=0)setInputPos(n, spread);
+    if(n!=0) // random postion for each input, except from the center of mass
+    {
+      relPos.get(n).x = (randomGaussian())/2;
+      relPos.get(n).y = (randomGaussian())/2;
+      relPos.get(n).z = (randomGaussian())/2;
+    }
   }
   smoothing = 100; // Middle input mass more responsive and larger 
   input[0] = perc.addMass("input"+0, new PosInput3D(2./100, new Vect3D(centerOfMass.x*scaling, centerOfMass.y*scaling, centerOfMass.z*scaling), smoothing));
@@ -149,6 +160,8 @@ for(int n =0; n <nInput ; n++)
   audioStreamHandler.setGain(10);
   audioStreamHandler.start();
 
+  // Set time interval arrays
+  setPeriod(period);
 }
 
 void draw()
@@ -178,4 +191,6 @@ void draw()
      // print(" - Jerk:  ");
      // println(getJerkScalar(0));
      //println(getExtensiveness());
+     //println(getWeightEffort());
+     text("Weight: " + getWeightEffort(), 10, 30);
 }

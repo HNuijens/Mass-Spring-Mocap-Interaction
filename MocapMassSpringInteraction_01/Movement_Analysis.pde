@@ -130,13 +130,44 @@ float getExtensiveness()
 // High level motion descriptors ------
 //-------------------------------------
 
+//--- Setup arrays for storage---//
+void setPeriod(int period)
+{
+  for(int t =0; t <period ; t++)
+  {
+    weightEffortList.append(0.);
+  }
+}
+
+//---Calculate Weight Effort---//
+float getWeightEffort()
+{
+  float energy = 0.;
+  float weight = 0.;
+  for(int j = 0; j < mocap.joints.size(); j++) { 
+    energy = energy + (1./mocap.joints.size()) * pow(getVelScalar(j),2);
+  }
+  weightEffortList.set(idx, energy);
+  
+  // Return largest in time period
+  for( int i = 0; i < weightEffortList.size(); i ++)
+  {
+   if(weightEffortList.get(i)>weight)
+   {
+     weight = weightEffortList.get(i);
+   }
+  }
+  idx = (idx + 1) % period;  
+  return weight; 
+}
+
+
+
 //-------------------------------------
 // Visualization motion          ------
 //-------------------------------------
 
 void setInputPos(int input,float spread)
 {
- relPos.get(input).x = (randomGaussian()-0.5)*spread;
- relPos.get(input).y = (randomGaussian()-0.5)*spread;
- relPos.get(input).z = (randomGaussian()-0.5)*spread;
+ 
 }
