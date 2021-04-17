@@ -60,8 +60,9 @@ FloatList flowEffortList = new FloatList();  // Array containing all flow effort
 // Input
 int nInput = 25;                                      // Number of input masses
 int smoothing;                                        // Input smoothing (sensitivity)
-float inRadius = 1*scaling;                           // Radius of input masses
+//float inRadius = 1*scaling;                           // Radius of input masses
 ArrayList<PVector> relPos = new ArrayList<PVector>(); // relative positioning of input masses
+FloatList inRadius = new FloatList();
 float spread = 0.5;                                       // Initial distance from ceter of mass and input
 
 // Strings
@@ -83,8 +84,8 @@ boolean showMarkers = true;
 void setup()
 {
   //---Display---//
-  //fullScreen(P3D,1);
-  size(800, 600, P3D);                      // 3D environment
+  fullScreen(P3D,1);
+  //size(800, 600, P3D);                      // 3D environment
   cam = new PeasyCam(this,150);              // Starting point camera
   cam.setMinimumDistance(50);                // Min camera distance 
   cam.setMaximumDistance(5500);              // Max camera distance 
@@ -123,9 +124,11 @@ void setup()
   centerOfMass = getCenterOfMass();
   extensiveness = getExtensiveness();
   
-  // set relative positions
+  // set input radius and relative positions 
+  inRadius.append(2.*scaling);
 for(int n =0; n <nInput ; n++)
   {
+    inRadius.append(random(0.2,1)/100); // each input has a different radius
     relPos.add(new PVector());
     if(n!=0) // random postion for each input, except from the center of mass
     {
@@ -134,14 +137,14 @@ for(int n =0; n <nInput ; n++)
       relPos.get(n).z = (randomGaussian())/2;
     }
   }
-  smoothing = 100; // Middle input mass more responsive and larger 
-  input[0] = perc.addMass("input"+0, new PosInput3D(2./100, new Vect3D(centerOfMass.x*scaling, centerOfMass.y*scaling, centerOfMass.z*scaling), smoothing));
+  // Center of mass input
+  smoothing = 100; // Middle input mass more responsive and larger
+  input[0] = perc.addMass("input"+0, new PosInput3D(inRadius.get(0), new Vect3D(centerOfMass.x*scaling, centerOfMass.y*scaling, centerOfMass.z*scaling), smoothing));
   
   for(int i = 1; i < nInput; i++)
   {
-    inRadius = random(0.2,1)/100;                 // Each input has a slightly different radius 
     smoothing = 1000 + (int) random(10,10000); // Each input has a slightly different response 
-    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius, new Vect3D((centerOfMass.x + relPos.get(i).x)*scaling, (centerOfMass.y + relPos.get(i).y)*scaling, (centerOfMass.z + relPos.get(i).z)*scaling), smoothing));
+    input[i] = perc.addMass("input"+i, new PosInput3D(inRadius.get(i), new Vect3D((centerOfMass.x + relPos.get(i).x)*scaling, (centerOfMass.y + relPos.get(i).y)*scaling, (centerOfMass.z + relPos.get(i).z)*scaling), smoothing));
 }
   
   phys.mdl().addPhyModel(string);
@@ -194,7 +197,8 @@ void draw()
   for(int i = 0; i < nInput; i++)
   {
     input[i].drivePosition(new Vect3D((centerOfMass.x + relPos.get(i).x*extensiveness)*scaling, (centerOfMass.y + relPos.get(i).y*extensiveness)*scaling, (centerOfMass.z + relPos.get(i).z*extensiveness)*scaling));
-  }
+    if(m > 0.05*scaling && m < 1.*scaling)input[i].setParam(param.RADIUS, inRadius.get(i) + m);
+}
   renderer.renderScene(phys);
   
     
@@ -210,8 +214,9 @@ void draw()
     flowEffort = getFlowEffort();
     
     k = map(flowEffort, 25000, 120000, 0.9, 0.6);
+    m = map(weightEffort, 1, 8000, 0.05*scaling, 1.*scaling);
     if(k > 0.1 && k<0.9)string.setParam(param.STIFFNESS,k);// ensure it doesnt break
-    
+   
     // damping 0.001 - 0.05. lower means longer decay
     // mass- around 0.7 - 3+ higher mass takes more energy
     // stiffness 0.001 -0.9 (mass =1)lower means more loose, lower frequency --> possbly flow or space
@@ -243,7 +248,6 @@ void draw()
       text(" - Space: " + spaceEffort, 10, 70);
       text(" - Flow: " + flowEffort, 10, 90);
       text(" press h to hide ", 10, 110);
-      text("stifness k = " + k, 10, 130);
       cam.endHUD();
     }
 }
