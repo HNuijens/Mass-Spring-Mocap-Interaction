@@ -57,8 +57,6 @@ FloatList timeEffortList = new FloatList();  // Array containing all time effort
 FloatList spaceEffortList = new FloatList();  // Array containing all space effort over period
 FloatList flowEffortList = new FloatList();  // Array containing all flow effort over period
 
-//ArrayList<Float> timeEffortList = new ArrayList<Float>();
-
 // Input
 int nInput = 25;                                      // Number of input masses
 int smoothing;                                        // Input smoothing (sensitivity)
@@ -67,9 +65,9 @@ ArrayList<PVector> relPos = new ArrayList<PVector>(); // relative positioning of
 float spread = 0.5;                                       // Initial distance from ceter of mass and input
 
 // Strings
-float m = 1.;                               // Mass
+float m = 1.;                                // Mass
 float k = 0.6f;                              // Stiffess
-float z = 0.005f;                             // Damping
+float z = 0.005f;                            // Damping
 float dist = 0.005;                          // Distance between individual masses
 int nMass = 150;                             // Number of masses in string
 float radius = 0.01;                         // Radius of masses
@@ -85,8 +83,8 @@ boolean showMarkers = true;
 void setup()
 {
   //---Display---//
-  fullScreen(P3D,1);
-  //size(800, 600, P3D);                      // 3D environment
+  //fullScreen(P3D,1);
+  size(800, 600, P3D);                      // 3D environment
   cam = new PeasyCam(this,150);              // Starting point camera
   cam.setMinimumDistance(50);                // Min camera distance 
   cam.setMaximumDistance(5500);              // Max camera distance 
@@ -191,7 +189,7 @@ void draw()
   
   currentFrame = mocapInstance.currentFrame;
   centerOfMass = getCenterOfMass();
-  extensiveness = map(getExtensiveness(),200,400,3,40); 
+  extensiveness = map(getExtensiveness(),200,400,3,35); 
   
   for(int i = 0; i < nInput; i++)
   {
@@ -200,7 +198,7 @@ void draw()
   renderer.renderScene(phys);
   
     
-    k = map(getWeightEffort(), 0, 10000, 0.6, 0.9);
+    //k = map(getWeightEffort(), 0, 10000, 0.6, 0.9);
     //k = float(nf(k,0,4));
     //println(round);
     //string.setParam(param.STIFFNESS,k);
@@ -210,6 +208,22 @@ void draw()
     timeEffort = getTimeEffort();
     spaceEffort = getSpaceEffort();
     flowEffort = getFlowEffort();
+    
+    k = map(flowEffort, 25000, 120000, 0.9, 0.6);
+    if(k > 0.1 && k<0.9)string.setParam(param.STIFFNESS,k);// ensure it doesnt break
+    
+    // damping 0.001 - 0.05. lower means longer decay
+    // mass- around 0.7 - 3+ higher mass takes more energy
+    // stiffness 0.001 -0.9 (mass =1)lower means more loose, lower frequency --> possbly flow or space
+    // distance
+    // radius
+    
+       // space: around 50 - 1000 max
+       // weight: 1 - 8000
+       // flow:25000 - 170000
+       // time  249- 1700
+  
+    
     
     idx = (idx + 1) % period;  // indexing for high level descriptor arrays
     
@@ -229,14 +243,13 @@ void draw()
       text(" - Space: " + spaceEffort, 10, 70);
       text(" - Flow: " + flowEffort, 10, 90);
       text(" press h to hide ", 10, 110);
-      text("stifness k = " + extensiveness, 10, 130);
+      text("stifness k = " + k, 10, 130);
       cam.endHUD();
     }
 }
 
 void keyPressed()
 {  
-
   if(key == 'h' && showText == true) 
   {
     showText = false;

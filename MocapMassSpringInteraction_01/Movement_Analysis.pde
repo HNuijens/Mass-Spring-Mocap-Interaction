@@ -3,8 +3,8 @@
 Movement Analysis functions
 Written by Helmer Nuijens 
 
-first part describes low level descriptors
-second part describes high level motion descriptors
+First part describes low level descriptors
+Second part describes high level motion descriptors
 
 -In each function 'j' stands for joint number
 
@@ -23,6 +23,13 @@ PVector getPosVec(int j, int relFrame)   //relFrame is the frame relative to the
   vector.y = mocap.joints.get(j).position.get((currentFrame + relFrame + mocap.frameNumber) % mocap.frameNumber).y;
   vector.z = mocap.joints.get(j).position.get((currentFrame + relFrame + mocap.frameNumber) % mocap.frameNumber).z;
   return vector;
+}
+
+float getPosScalar(int j, int relFrame)
+{
+  PVector posVec = getPosVec(j, relFrame);
+  float posScalar = sqrt(pow(posVec.x,2) + pow(posVec.y,2) + pow(posVec.z,2));
+  return posScalar;
 }
 
 //---Calculate Velocity---//
@@ -188,11 +195,22 @@ float getTimeEffort()
 //---Calculate Space Effort---//
 float getSpaceEffort()
 {
-  float time =0;
-  return time;
+  float totalSpace =0.;
+  // calculate space of each marker
+  for(int j = 0; j < mocap.joints.size(); j++) 
+  {
+    float space = 0.;
+    for(int i = 1; i < period; i++)
+    {
+      space = space + abs(getPosScalar(j,i) - getPosScalar(j,i-1));
+    }
+    space /= abs(getPosScalar(j, period) - getPosScalar(j, 1));
+    totalSpace = totalSpace + (1./mocap.joints.size()) * space; 
+  }
+  return totalSpace;
 }
-//---Calculate Flow Effort---//
 
+//---Calculate Flow Effort---//
 float getFlowEffort()
 {
   float flow =0.;
