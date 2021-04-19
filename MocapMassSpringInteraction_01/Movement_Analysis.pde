@@ -1,14 +1,14 @@
 /*
 
-Movement Analysis functions
-Written by Helmer Nuijens 
-
-First part describes low level descriptors
-Second part describes high level motion descriptors
-
--In each function 'j' stands for joint number
-
-*/
+ Movement Analysis functions
+ Written by Helmer Nuijens 
+ 
+ First part describes low level descriptors
+ Second part describes high level motion descriptors
+ 
+ -In each function 'j' stands for joint number
+ 
+ */
 
 
 //-------------------------------------
@@ -28,7 +28,7 @@ PVector getPosVec(int j, int relFrame)   //relFrame is the frame relative to the
 float getPosScalar(int j, int relFrame)
 {
   PVector posVec = getPosVec(j, relFrame);
-  float posScalar = sqrt(pow(posVec.x,2) + pow(posVec.y,2) + pow(posVec.z,2));
+  float posScalar = sqrt(pow(posVec.x, 2) + pow(posVec.y, 2) + pow(posVec.z, 2));
   return posScalar;
 }
 
@@ -36,16 +36,16 @@ float getPosScalar(int j, int relFrame)
 PVector getVelVec(int j)
 {
   PVector vector = new PVector();
-  vector.x = (getPosVec(j,1).x - getPosVec(j,-1).x)/(2. * deltaT);
-  vector.y = (getPosVec(j,1).y - getPosVec(j,-1).y)/(2. * deltaT);
-  vector.z = (getPosVec(j,1).z - getPosVec(j,-1).z)/(2. * deltaT);
+  vector.x = (getPosVec(j, 1).x - getPosVec(j, -1).x)/(2. * deltaT);
+  vector.y = (getPosVec(j, 1).y - getPosVec(j, -1).y)/(2. * deltaT);
+  vector.z = (getPosVec(j, 1).z - getPosVec(j, -1).z)/(2. * deltaT);
   return vector;
 }
 
 float getVelScalar(int j)
 {
   PVector velVec = getVelVec(j);
-  float velScalar = sqrt(pow(velVec.x,2) + pow(velVec.y,2) + pow(velVec.z,2));
+  float velScalar = sqrt(pow(velVec.x, 2) + pow(velVec.y, 2) + pow(velVec.z, 2));
   return velScalar;
 }
 
@@ -53,16 +53,16 @@ float getVelScalar(int j)
 PVector getAccVec(int j)
 {
   PVector vector = new PVector();
-  vector.x = (getPosVec(j,1).x - 2 * getPosVec(j,0).x + getPosVec(j,-1).x)/(deltaT * deltaT);
-  vector.y = (getPosVec(j,1).y - 2 * getPosVec(j,0).y + getPosVec(j,-1).y)/(deltaT * deltaT);
-  vector.z = (getPosVec(j,1).z - 2 * getPosVec(j,0).z + getPosVec(j,-1).z)/(deltaT * deltaT);
+  vector.x = (getPosVec(j, 1).x - 2 * getPosVec(j, 0).x + getPosVec(j, -1).x)/(deltaT * deltaT);
+  vector.y = (getPosVec(j, 1).y - 2 * getPosVec(j, 0).y + getPosVec(j, -1).y)/(deltaT * deltaT);
+  vector.z = (getPosVec(j, 1).z - 2 * getPosVec(j, 0).z + getPosVec(j, -1).z)/(deltaT * deltaT);
   return vector;
 }
 
 float getAccScalar(int j)
 {
   PVector accVec = getAccVec(j);
-  float accScalar = sqrt(pow(accVec.x,2)+ pow(accVec.y,2) + pow(accVec.z,2));
+  float accScalar = sqrt(pow(accVec.x, 2)+ pow(accVec.y, 2) + pow(accVec.z, 2));
   return accScalar;
 }
 
@@ -70,28 +70,27 @@ float getAccScalar(int j)
 PVector getJerkVec(int j)
 {
   PVector vector = new PVector();
-  vector.x = (getPosVec(j,2).x - 2 * getPosVec(j,1).x + 2 * getPosVec(j,-1).x - getPosVec(j,-2).x)/(2. * deltaT * deltaT * deltaT);
-  vector.y = (getPosVec(j,2).y - 2 * getPosVec(j,1).y + 2 * getPosVec(j,-1).y - getPosVec(j,-2).y)/(2. * deltaT * deltaT * deltaT);
-  vector.z = (getPosVec(j,2).z - 2 * getPosVec(j,1).z + 2 * getPosVec(j,-1).z - getPosVec(j,-2).z)/(2. * deltaT * deltaT * deltaT);
+  vector.x = (getPosVec(j, 2).x - 2 * getPosVec(j, 1).x + 2 * getPosVec(j, -1).x - getPosVec(j, -2).x)/(2. * deltaT * deltaT * deltaT);
+  vector.y = (getPosVec(j, 2).y - 2 * getPosVec(j, 1).y + 2 * getPosVec(j, -1).y - getPosVec(j, -2).y)/(2. * deltaT * deltaT * deltaT);
+  vector.z = (getPosVec(j, 2).z - 2 * getPosVec(j, 1).z + 2 * getPosVec(j, -1).z - getPosVec(j, -2).z)/(2. * deltaT * deltaT * deltaT);
   return vector;
 }
 
 float getJerkScalar(int j)
 {
   PVector jerkVec = getJerkVec(j);
-  float jerkScalar = sqrt(pow(jerkVec.x,2) + pow(jerkVec.y,2) + pow(jerkVec.z,2));
+  float jerkScalar = sqrt(pow(jerkVec.x, 2) + pow(jerkVec.y, 2) + pow(jerkVec.z, 2));
   return jerkScalar;
 }
 
 //---Initialize joint weights---//
 void setJointWeights()
 {
-  for(int j = 0; j < jointWeight.length; j++)
+  for (int j = 0; j < jointWeight.length; j++)
   {
     jointWeight[j] = 0.; // initializs first with zeros
-    
   }
-  
+
   jointWeight[2] = 0.1000;  // right hip 
   jointWeight[3] = 0.0465;  // right knee
   jointWeight[6] = 0.0145;  // right toe joint
@@ -113,11 +112,11 @@ PVector getCenterOfMass()
 {
   PVector ctrOfMass = new PVector();
   // weighted average of joints:
-   for(int j = 0; j < mocap.joints.size(); j++) { 
-      ctrOfMass.x += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).x;
-      ctrOfMass.y += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).y;
-      ctrOfMass.z += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).z;
-    }
+  for (int j = 0; j < mocap.joints.size(); j++) { 
+    ctrOfMass.x += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).x;
+    ctrOfMass.y += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).y;
+    ctrOfMass.z += jointWeight[j] * mocap.joints.get(j).position.get(currentFrame).z;
+  }
   return ctrOfMass;
 }
 
@@ -127,8 +126,8 @@ float getExtensiveness()
   float extension = 0;
   PVector ctrOfMass = getCenterOfMass();
   // Summation of distance between joints and center of mass
-  for(int j = 0; j < mocap.joints.size(); j++) { 
-    extension += sqrt(pow(ctrOfMass.x - getPosVec(j,0).x,2) +  pow(ctrOfMass.y - getPosVec(j,0).y,2) + pow(ctrOfMass.z - getPosVec(j,0).z,2));
+  for (int j = 0; j < mocap.joints.size(); j++) { 
+    extension += sqrt(pow(ctrOfMass.x - getPosVec(j, 0).x, 2) +  pow(ctrOfMass.y - getPosVec(j, 0).y, 2) + pow(ctrOfMass.z - getPosVec(j, 0).z, 2));
   }
   return extension;
 }
@@ -140,7 +139,7 @@ float getExtensiveness()
 //--- Setup arrays for storage---//
 void setPeriod(int period)
 {
-  for(int t =0; t <period ; t++)
+  for (int t =0; t <period; t++)
   {
     weightEffortList.append(0.); // Fill weight array
     timeEffortList.append(0.);   // Fill time array
@@ -154,21 +153,21 @@ float getWeightEffort()
 {
   float energy = 0.;
   float weight = 0.;
-  for(int j = 0; j < mocap.joints.size(); j++)
+  for (int j = 0; j < mocap.joints.size(); j++)
   { 
-    energy = energy + (1./mocap.joints.size()) * pow(getVelScalar(j),2);
+    energy = energy + (1./mocap.joints.size()) * pow(getVelScalar(j), 2);
   }
   weightEffortList.set(idx, energy); // store energy
-  
+
   // Return largest in time period
-  for( int i = 0; i < weightEffortList.size(); i ++)
+  for ( int i = 0; i < weightEffortList.size(); i ++)
   {
-   if(weightEffortList.get(i)>weight)
-   {
-     weight = weightEffortList.get(i);
-   }
+    if (weightEffortList.get(i)>weight)
+    {
+      weight = weightEffortList.get(i);
+    }
   }
-  return weight; 
+  return weight;
 }
 
 //---Calculate Time Effort---//
@@ -176,20 +175,20 @@ float getTimeEffort()
 {
   float time =0.;
   float totalTime =0.;
-  
+
   // calculate flow of each marker
-  for(int j = 0; j < mocap.joints.size(); j++) 
+  for (int j = 0; j < mocap.joints.size(); j++) 
   {
     time = time + (1./mocap.joints.size()) * getAccScalar(j);
   }
   timeEffortList.set(idx, time); // store time effort
 
   // Return average flow over period
-  for( int i = 0; i < timeEffortList.size(); i ++)
+  for ( int i = 0; i < timeEffortList.size(); i ++)
   {
-     totalTime = totalTime + (1./period) * timeEffortList.get(i);
+    totalTime = totalTime + (1./period) * timeEffortList.get(i);
   }
-  return totalTime; 
+  return totalTime;
 }
 
 //---Calculate Space Effort---//
@@ -197,15 +196,15 @@ float getSpaceEffort()
 {
   float totalSpace =0.;
   // calculate space of each marker
-  for(int j = 0; j < mocap.joints.size(); j++) 
+  for (int j = 0; j < mocap.joints.size(); j++) 
   {
     float space = 0.;
-    for(int i = 1; i < period; i++)
+    for (int i = 1; i < period; i++)
     {
-      space = space + abs(getPosScalar(j,i) - getPosScalar(j,i-1));
+      space = space + abs(getPosScalar(j, i) - getPosScalar(j, i-1));
     }
     space /= abs(getPosScalar(j, period) - getPosScalar(j, 1));
-    totalSpace = totalSpace + (1./mocap.joints.size()) * space; 
+    totalSpace = totalSpace + (1./mocap.joints.size()) * space;
   }
   return totalSpace;
 }
@@ -215,18 +214,18 @@ float getFlowEffort()
 {
   float flow =0.;
   float totalFlow =0.;
-  
+
   // calculate flow of each marker
-  for(int j = 0; j < mocap.joints.size(); j++) 
+  for (int j = 0; j < mocap.joints.size(); j++) 
   {
     flow = flow + (1./mocap.joints.size()) * getJerkScalar(j);
   }
   flowEffortList.set(idx, flow); // store flow effort
 
   // Return average flow over period
-  for( int i = 0; i < flowEffortList.size(); i ++)
+  for ( int i = 0; i < flowEffortList.size(); i ++)
   {
-     totalFlow = totalFlow + (1./period) * flowEffortList.get(i);
+    totalFlow = totalFlow + (1./period) * flowEffortList.get(i);
   }
-  return totalFlow; 
+  return totalFlow;
 }

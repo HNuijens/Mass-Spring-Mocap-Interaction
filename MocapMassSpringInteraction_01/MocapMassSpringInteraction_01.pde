@@ -1,24 +1,13 @@
 /* 
-
-Body controlling a mass/spring physical model
-By Helmer Nuijens
-
-Using: 
-- MiPhysics by .....
-- Motion capture data import class by stefanG, see Read_Mocap tab
-
-To do:
-- X Get right velocity, acceleration and jerk data
-- X Import camera lib (delete current camera)
-- X Calculate box size/ extensiveness
-- Calculate Laban descriptors
-- X Import miPhysics
-- X Create + interact with
-- Control the physical parameters
-- experiment for right mapping
-- create more interactions
-
-*/
+ 
+ Body controlling a mass/spring physical model
+ By Helmer Nuijens
+ 
+ Using: 
+ - MiPhysics by .....
+ - Motion capture data import class by stefanG, see Read_Mocap tab
+ 
+ */
 
 //---Libraries---//
 import peasy.*;                              // Library allowing camera movements
@@ -84,53 +73,53 @@ boolean showMarkers = true;
 void setup()
 {
   //---Display---//
-  fullScreen(P3D,1);
+  fullScreen(P3D, 1);
   //size(800, 600, P3D);                      // 3D environment
-  cam = new PeasyCam(this,150);              // Starting point camera
-  cam.setMinimumDistance(50);                // Min camera distance 
-  cam.setMaximumDistance(5500);              // Max camera distance 
-  cam.rotateX(radians(200));                 // Rotate camera for orientation
-  
+  cam = new PeasyCam(this, 150);              // Starting point camera
+  cam.setMinimumDistance(50);                 // Min camera distance 
+  cam.setMaximumDistance(5500);               // Max camera distance 
+  cam.rotateX(radians(200));                  // Rotate camera for orientation
+
   //---Motion captures---//
   Mocap mocap1 = new Mocap("05_18.bvh");     // Load motion capture data:               
   // Constructor:
-  mocapInstance = new MocapInstance(mocap1,0,new float[] {0.,0.,0.},      
-                                              new float[] {0.,0.,0.},1.,
-                                              color(255, 0, 200),2);
-                                              
+  mocapInstance = new MocapInstance(mocap1, 0, new float[] {0., 0., 0.}, 
+    new float[] {0., 0., 0.}, 1., 
+    color(255, 0, 200), 2);
+
   //---Frame Rate---//
   float frmRate = findFrameRate(mocapInstance);
   frameRate(frmRate);
   println(frmRate);
   deltaT = 1/frmRate;
-  
+
   //---Initialize joint weights---//
   setJointWeights();
 
   //---Physical model setup---//
   Medium med = new Medium(0.0000005, new Vect3D(0, -0.00, 0.0));  // Create new medium with friction and gravity
   phys = new PhysicsContext(44100, int(frmRate));               // Create context with right sample and frame rates
-  
+
   // Create and tranform string
   string = new miString("string", med, nMass, radius, m, k, z, dist, 0.003, "2D");
   string.rotate(0, PI/2, 0);
-  string.translate(-2./10,1.5/10,0);
+  string.translate(-3.7/10, 1.5/10, 0);
   string.changeToFixedPoint("m_0");                            // Ground 1
   string.changeToFixedPoint(string.getLastMass());             // Ground 2
-  
+
   PhyModel perc = new PhyModel("pluck", med);                  // Physical model
-  
+
   //---Input setup---//
   centerOfMass = getCenterOfMass();
   extensiveness = getExtensiveness();
-  
+
   // set input radius and relative positions 
   inRadius.append(2.*scaling);
-for(int n =0; n <nInput ; n++)
+  for (int n =0; n <nInput; n++)
   {
-    inRadius.append(random(0.2,1)/100); // each input has a different radius
+    inRadius.append(random(0.2, 1)/100); // each input has a different radius
     relPos.add(new PVector());
-    if(n!=0) // random postion for each input, except from the center of mass
+    if (n!=0) // random postion for each input, except from the center of mass
     {
       relPos.get(n).x = (randomGaussian())/2;
       relPos.get(n).y = (randomGaussian())/2;
@@ -140,33 +129,33 @@ for(int n =0; n <nInput ; n++)
   // Center of mass input
   smoothing = 100; // Middle input mass more responsive and larger
   input[0] = perc.addMass("input"+0, new PosInput3D(inRadius.get(0), new Vect3D(centerOfMass.x*scaling, centerOfMass.y*scaling, centerOfMass.z*scaling), smoothing));
-  
-  for(int i = 1; i < nInput; i++)
+
+  for (int i = 1; i < nInput; i++)
   {
-    smoothing = 1000 + (int) random(10,10000); // Each input has a slightly different response 
+    smoothing = 1000 + (int) random(10, 10000); // Each input has a slightly different response 
     input[i] = perc.addMass("input"+i, new PosInput3D(inRadius.get(i), new Vect3D((centerOfMass.x + relPos.get(i).x)*scaling, (centerOfMass.y + relPos.get(i).y)*scaling, (centerOfMass.z + relPos.get(i).z)*scaling), smoothing));
-}
-  
+  }
+
   phys.mdl().addPhyModel(string);
   phys.mdl().addPhyModel(perc);
-  
+
   phys.mdl().addInOut("listener1", new Observer3D(filterType.HIGH_PASS), phys.mdl().getPhyModel("string").getMass("m_10"));
   phys.colEngine().addCollision(string, perc, 0.0002, -0.001);   // Bowing settings
   //phys.colEngine().addCollision(string, perc, 0.05, 0.01);    // Plucking settings
 
   phys.init();
-  
+
   // Visuals
   renderer = new ModelRenderer(this);  
   renderer.setZoomVector(100, 100, 100);  
   renderer.displayMasses(true);  
-  
+
   renderer.setColor(massType.MASS2DPLANE, 255, 250, 200);
   renderer.setColor(interType.SPRINGDAMPER3D, 255, 70, 70, 255);
   renderer.setColor(massType.POSINPUT3D, 160, 220, 255);
   renderer.setStrainGradient(interType.SPRINGDAMPER3D, true, 0.1);
   renderer.setStrainColor(interType.SPRINGDAMPER3D, 255, 100, 200, 200);
-  
+
   // Audio 
   audioStreamHandler = miPhyAudioClient.miPhyClassic(44100, 512, 0, 2, phys);
   audioStreamHandler.setListenerAxis(listenerAxis.Y);
@@ -175,93 +164,71 @@ for(int n =0; n <nInput ; n++)
 
   // Set time interval arrays
   setPeriod(period);
-  
- /// textSize(4);
- 
+
+  /// textSize(4);
 }
 
 void draw()
 {
-  noCursor();
+  //noCursor();
   background(0, 0, 0); 
   directionalLight(126, 126, 126, 100, 0, -1);
   ambientLight(182, 182, 182);
-  //drawGroundPlane(50);
-  //println(getPosVec(0,0));
+
   mocapInstance.drawMocap();
   
+  //---Motion analysis---//
   currentFrame = mocapInstance.currentFrame;
   centerOfMass = getCenterOfMass();
-  extensiveness = map(getExtensiveness(),200,400,3,35); 
+  extensiveness = map(getExtensiveness(), 200, 400, 3, 35); 
+
+  weightEffort = getWeightEffort();
+  timeEffort = getTimeEffort();
+  spaceEffort = getSpaceEffort();
+  flowEffort = getFlowEffort();
+  idx = (idx + 1) % period;  // indexing for high level descriptor arrays
   
-  for(int i = 0; i < nInput; i++)
+  k = map(flowEffort, 25000, 120000, 0.9, 0.6);
+  m = map(weightEffort, 1, 8000, 0.05*scaling, 1.*scaling);
+  if (k > 0.1 && k<0.9)string.setParam(param.STIFFNESS, k); // ensure it doesnt break
+  
+  //---Change input positions and radius--//
+  for (int i = 0; i < nInput; i++)
   {
     input[i].drivePosition(new Vect3D((centerOfMass.x + relPos.get(i).x*extensiveness)*scaling, (centerOfMass.y + relPos.get(i).y*extensiveness)*scaling, (centerOfMass.z + relPos.get(i).z*extensiveness)*scaling));
-    if(m > 0.05*scaling && m < 1.*scaling)input[i].setParam(param.RADIUS, inRadius.get(i) + m);
-}
+    if (m > 0.05*scaling && m < 1.*scaling)input[i].setParam(param.RADIUS, inRadius.get(i) + m);
+  }
   renderer.renderScene(phys);
-  
-    
-    //k = map(getWeightEffort(), 0, 10000, 0.6, 0.9);
-    //k = float(nf(k,0,4));
-    //println(round);
-    //string.setParam(param.STIFFNESS,k);
-    //if(k>0.6&& k<0.9)string.setParam(param.STIFFNESS,k);
-    
-    weightEffort = getWeightEffort();
-    timeEffort = getTimeEffort();
-    spaceEffort = getSpaceEffort();
-    flowEffort = getFlowEffort();
-    
-    k = map(flowEffort, 25000, 120000, 0.9, 0.6);
-    m = map(weightEffort, 1, 8000, 0.05*scaling, 1.*scaling);
-    if(k > 0.1 && k<0.9)string.setParam(param.STIFFNESS,k);// ensure it doesnt break
-   
-    // damping 0.001 - 0.05. lower means longer decay
-    // mass- around 0.7 - 3+ higher mass takes more energy
-    // stiffness 0.001 -0.9 (mass =1)lower means more loose, lower frequency --> possbly flow or space
-    // distance
-    // radius
-    
-       // space: around 50 - 1000 max
-       // weight: 1 - 8000
-       // flow:25000 - 170000
-       // time  249- 1700
-  
-    
-    
-    idx = (idx + 1) % period;  // indexing for high level descriptor arrays
-    
-    
-     //---Text---//
-    if(showText == true)
-    {
-      cam.beginHUD();
-      stroke(125,125,255);
-      strokeWeight(2);
-      fill(0,0,60, 220);
-      rect(0,0, 250, 120);
-      textSize(16);
-      fill(255, 255, 255);
-      text(" - Weight: " + weightEffort, 10, 30);
-      text(" - Time: " + timeEffort, 10, 50);
-      text(" - Space: " + spaceEffort, 10, 70);
-      text(" - Flow: " + flowEffort, 10, 90);
-      text(" press h to hide ", 10, 110);
-      cam.endHUD();
-    }
+
+  //---Text---//
+  if (showText == true)
+  {
+    drawGroundPlane(50);
+    cam.beginHUD();
+    stroke(125, 125, 255);
+    strokeWeight(2);
+    fill(0, 0, 60, 220);
+    rect(0, 0, 250, 120);
+    textSize(16);
+    fill(255, 255, 255);
+    text(" - Weight: " + weightEffort, 10, 30);
+    text(" - Time: " + timeEffort, 10, 50);
+    text(" - Space: " + spaceEffort, 10, 70);
+    text(" - Flow: " + flowEffort, 10, 90);
+    text(" press h to hide ", 10, 110);
+    cam.endHUD();
+  }
 }
 
 void keyPressed()
 {  
-  if(key == 'h' && showText == true) 
+  if (key == 'h' && showText == true) 
   {
     showText = false;
     showMarkers = false;
-  }
-  else if(key == 'h' && showText == false)
+  } else if (key == 'h' && showText == false)
   {
     showText = true;
-    showMarkers = true; 
+    showMarkers = true;
   }
 }
