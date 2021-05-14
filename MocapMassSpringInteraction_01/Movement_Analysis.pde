@@ -132,6 +132,38 @@ float getExtensiveness()
   return extension;
 }
 
+float getExtensivenessX()
+{
+  float extensionX = 0;
+  PVector ctrOfMass = getCenterOfMass();
+  // Summation of distance between joints and center of mass
+  for (int j = 0; j < mocap.joints.size(); j++) { 
+    extensionX += sqrt(pow(ctrOfMass.x - getPosVec(j, 0).x, 2));
+  }
+  return extensionX;
+}
+
+float getExtensivenessY()
+{
+  float extensionY = 0;
+  PVector ctrOfMass = getCenterOfMass();
+  // Summation of distance between joints and center of mass
+  for (int j = 0; j < mocap.joints.size(); j++) { 
+    extensionY += sqrt(pow(ctrOfMass.y - getPosVec(j, 0).y, 2));
+  }
+  return extensionY;
+}
+
+float getExtensivenessZ()
+{
+  float extensionZ = 0;
+  PVector ctrOfMass = getCenterOfMass();
+  // Summation of distance between joints and center of mass
+  for (int j = 0; j < mocap.joints.size(); j++) { 
+    extensionZ += sqrt(pow(ctrOfMass.z - getPosVec(j, 0).z, 2));
+  }
+  return extensionZ;
+}
 //-------------------------------------
 // High level motion descriptors ------
 //-------------------------------------

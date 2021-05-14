@@ -20,7 +20,7 @@ PeasyCam cam;                                // Camera
 MocapInstance mocapInstance;                 // Mocap, see Read_Mocap
 PhysicsContext phys;                         // Physics
 Observer3D listener;                         // Audio out
-PosInput3D[] input = new PosInput3D[25];     // Excitation inputs
+PosInput3D[] input = new PosInput3D[200];    // Excitation inputs
 ModelRenderer renderer;                      // Rendering
 miString string;                             // String
 miPhyAudioClient audioStreamHandler;         // Audio
@@ -30,11 +30,14 @@ miPhyAudioClient audioStreamHandler;         // Audio
 int currentFrame = 0;                        // Current frame 
 float deltaT;                                // Frame time
 PVector centerOfMass;                        // body center of mass
-float extensiveness;                         // Body extensiveness
+float extensiveness;                         // full body extensiveness
+float extensivenessX;                        // Body extensiveness on the x axis
+float extensivenessY;                        // Body extensiveness on the Y axis
+float extensivenessZ;                        // Body extensiveness on the z axis
 float[] jointWeight = new float[38];         // 38 joints in total
 float scaling = 1./100;                      // object scaling mocap and model
 
-// high level descriptors
+// Laban descriptors
 int period = 20;                             // High level motion descriptor time interval
 int idx = 0;                                 // current index
 float weightEffort;                          
@@ -43,13 +46,13 @@ float spaceEffort;
 float flowEffort;
 FloatList weightEffortList = new FloatList();// Array containing all weight effort over period
 FloatList timeEffortList = new FloatList();  // Array containing all time effort over period
-FloatList spaceEffortList = new FloatList();  // Array containing all space effort over period
+FloatList spaceEffortList = new FloatList(); // Array containing all space effort over period
 FloatList flowEffortList = new FloatList();  // Array containing all flow effort over period
 
 // Input
-int nInput = 25;                                      // Number of input masses
+int nInput = 200;                                     // Number of input masses
 int smoothing;                                        // Input smoothing (sensitivity)
-//float inRadius = 1*scaling;                           // Radius of input masses
+//float inRadius = 1*scaling;                         // Radius of input masses
 ArrayList<PVector> relPos = new ArrayList<PVector>(); // relative positioning of input masses
 FloatList inRadius = new FloatList();
 float spread = 0.5;                                       // Initial distance from ceter of mass and input
@@ -69,11 +72,10 @@ float audioOut = 0;
 // Text
 boolean showText = true; 
 boolean showMarkers = true;
-
 void setup()
 {
   //---Display---//
-  fullScreen(P3D, 1);
+  fullScreen(OPENGL, 1);
   //size(800, 600, P3D);                      // 3D environment
   cam = new PeasyCam(this, 150);              // Starting point camera
   cam.setMinimumDistance(50);                 // Min camera distance 
@@ -117,7 +119,7 @@ void setup()
   inRadius.append(2.*scaling);
   for (int n =0; n <nInput; n++)
   {
-    inRadius.append(random(0.2, 1)/100); // each input has a different radius
+    inRadius.append(random(0.1, 0.8)/100); // each input has a different radius
     relPos.add(new PVector());
     if (n!=0) // random postion for each input, except from the center of mass
     {
@@ -140,7 +142,7 @@ void setup()
   phys.mdl().addPhyModel(perc);
 
   phys.mdl().addInOut("listener1", new Observer3D(filterType.HIGH_PASS), phys.mdl().getPhyModel("string").getMass("m_10"));
-  phys.colEngine().addCollision(string, perc, 0.0002, -0.001);   // Bowing settings
+  phys.colEngine().addCollision(string, perc, 0.0002, -0.0001);   // Bowing settings
   //phys.colEngine().addCollision(string, perc, 0.05, 0.01);    // Plucking settings
 
   phys.init();
@@ -174,14 +176,18 @@ void draw()
   background(0, 0, 0); 
   directionalLight(126, 126, 126, 100, 0, -1);
   ambientLight(182, 182, 182);
-
+  
   mocapInstance.drawMocap();
   
   //---Motion analysis---//
   currentFrame = mocapInstance.currentFrame;
   centerOfMass = getCenterOfMass();
   extensiveness = map(getExtensiveness(), 200, 400, 3, 35); 
-
+  extensivenessX = map(getExtensivenessX(), 0, 400, 0, 25);
+  extensivenessY = map(getExtensivenessY(), 0, 400, 0, 25);
+  extensivenessZ = map(getExtensivenessZ(), 0, 400, 0, 25);
+  
+  
   weightEffort = getWeightEffort();
   timeEffort = getTimeEffort();
   spaceEffort = getSpaceEffort();
@@ -190,14 +196,15 @@ void draw()
   
   k = map(flowEffort, 25000, 120000, 0.9, 0.6);
   m = map(weightEffort, 1, 8000, 0.05*scaling, 1.*scaling);
-  if (k > 0.1 && k<0.9)string.setParam(param.STIFFNESS, k); // ensure it doesnt break
-  
+  if (k > 0.1 && k<0.9)string.setParam(param.STIFFNESS, k); // ensure string does not break
+
   //---Change input positions and radius--//
   for (int i = 0; i < nInput; i++)
   {
-    input[i].drivePosition(new Vect3D((centerOfMass.x + relPos.get(i).x*extensiveness)*scaling, (centerOfMass.y + relPos.get(i).y*extensiveness)*scaling, (centerOfMass.z + relPos.get(i).z*extensiveness)*scaling));
+    input[i].drivePosition(new Vect3D((centerOfMass.x + relPos.get(i).x*extensivenessX)*scaling, (centerOfMass.y + relPos.get(i).y*extensivenessY)*scaling, (centerOfMass.z + relPos.get(i).z*extensivenessZ)*scaling));
     if (m > 0.05*scaling && m < 1.*scaling)input[i].setParam(param.RADIUS, inRadius.get(i) + m);
   }
+   
   renderer.renderScene(phys);
 
   //---Text---//
@@ -230,5 +237,10 @@ void keyPressed()
   {
     showText = true;
     showMarkers = true;
+  }
+  
+  if(key == ' ')
+  {
+    saveFrame("screenshots/X_##.png");
   }
 }
